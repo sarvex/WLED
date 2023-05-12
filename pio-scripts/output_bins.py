@@ -3,12 +3,12 @@ import os
 import shutil
 import gzip
 
-OUTPUT_DIR = "build_output{}".format(os.path.sep)
+OUTPUT_DIR = f"build_output{os.path.sep}"
 
 def _get_cpp_define_value(env, define):
-    define_list = [item[-1] for item in env["CPPDEFINES"] if item[0] == define]
-
-    if define_list:
+    if define_list := [
+        item[-1] for item in env["CPPDEFINES"] if item[0] == define
+    ]:
         return define_list[0]
 
     return None
@@ -19,23 +19,21 @@ def _create_dirs(dirs=["firmware", "map"]):
         os.mkdir(OUTPUT_DIR)
 
     for d in dirs:
-        if not os.path.isdir("{}{}".format(OUTPUT_DIR, d)):
-            os.mkdir("{}{}".format(OUTPUT_DIR, d))
+        if not os.path.isdir(f"{OUTPUT_DIR}{d}"):
+            os.mkdir(f"{OUTPUT_DIR}{d}")
 
 def bin_rename_copy(source, target, env):
     _create_dirs()
     variant = env["PIOENV"]
 
     # create string with location and file names based on variant
-    map_file = "{}map{}{}.map".format(OUTPUT_DIR, os.path.sep, variant)
-    bin_file = "{}firmware{}{}.bin".format(OUTPUT_DIR, os.path.sep, variant)
+    map_file = f"{OUTPUT_DIR}map{os.path.sep}{variant}.map"
+    bin_file = f"{OUTPUT_DIR}firmware{os.path.sep}{variant}.bin"
 
-    release_name = _get_cpp_define_value(env, "WLED_RELEASE_NAME")
-
-    if release_name:
+    if release_name := _get_cpp_define_value(env, "WLED_RELEASE_NAME"):
         _create_dirs(["release"])
         version = _get_cpp_define_value(env, "WLED_VERSION")
-        release_file = "{}release{}WLED_{}_{}.bin".format(OUTPUT_DIR, os.path.sep, version, release_name)
+        release_file = f"{OUTPUT_DIR}release{os.path.sep}WLED_{version}_{release_name}.bin"
         shutil.copy(str(target[0]), release_file)
 
     # check if new target files exist and remove if necessary
@@ -55,8 +53,8 @@ def bin_gzip(source, target, env):
     variant = env["PIOENV"]
 
     # create string with location and file names based on variant
-    bin_file = "{}firmware{}{}.bin".format(OUTPUT_DIR, os.path.sep, variant)
-    gzip_file = "{}firmware{}{}.bin.gz".format(OUTPUT_DIR, os.path.sep, variant)
+    bin_file = f"{OUTPUT_DIR}firmware{os.path.sep}{variant}.bin"
+    gzip_file = f"{OUTPUT_DIR}firmware{os.path.sep}{variant}.bin.gz"
 
     # check if new target files exist and remove if necessary
     if os.path.isfile(gzip_file): os.remove(gzip_file)
